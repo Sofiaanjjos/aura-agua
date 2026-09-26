@@ -131,6 +131,18 @@
             </div>
         </div>
 
+        <!-- Feedback Section -->
+        <div class="w-full bg-zinc-900/70 border border-zinc-800/80 rounded-2xl p-4 text-center mt-2">
+            <p class="text-xs text-zinc-300 font-medium mb-3">Curtiu a aplicação? Deixe seu copinho de incentivo! 💧</p>
+            <div class="flex justify-center items-center gap-2" id="feedbackContainer">
+                <button onclick="giveFeedback()" id="feedbackBtn" class="px-4 py-2 bg-zinc-800 hover:bg-pink-600/30 border border-zinc-700 hover:border-pink-500 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-zinc-200 group active:scale-95">
+                    <span class="text-base group-hover:scale-125 transition-transform">🚰</span> 
+                    <span id="feedbackText">Enviar Copinho de Gosto</span>
+                </button>
+            </div>
+            <p id="feedbackCounter" class="text-[10px] text-zinc-500 mt-2">Total de copinhos recebidos: <span id="feedbackCount" class="text-pink-400 font-bold">12</span></p>
+        </div>
+
     </main>
 
     <footer class="w-full border-t border-zinc-800/80 bg-zinc-950 py-3 text-center text-xs text-zinc-500">
@@ -141,7 +153,9 @@
         let appState = {
             currentMl: 0,
             targetMl: 2000,
-            streak: 1
+            streak: 1,
+            feedbackGiven: false,
+            feedbackTotal: 12
         };
 
         window.onload = function() {
@@ -157,7 +171,8 @@
             const saved = localStorage.getItem('auraagua_state');
             if (saved) {
                 try {
-                    appState = JSON.parse(saved);
+                    const parsed = JSON.parse(saved);
+                    appState = { ...appState, ...parsed };
                 } catch(e) {
                     console.error('Erro ao carregar dados salvos', e);
                 }
@@ -188,6 +203,18 @@
             updateUI();
         }
 
+        function giveFeedback() {
+            if (!appState.feedbackGiven) {
+                appState.feedbackTotal += 1;
+                appState.feedbackGiven = true;
+            } else {
+                appState.feedbackTotal -= 1;
+                appState.feedbackGiven = false;
+            }
+            saveStorage();
+            updateUI();
+        }
+
         function updateUI() {
             const percent = Math.min(100, Math.round((appState.currentMl / appState.targetMl) * 100));
             const cupsDrunk = Math.floor(appState.currentMl / 250);
@@ -200,6 +227,19 @@
             // Update Mini Stat Cards
             document.getElementById('statCups').innerText = `${cupsDrunk} / 8`;
             document.getElementById('statStreak').innerText = `🔥 ${appState.streak}d`;
+
+            // Update Feedback UI
+            const fbBtn = document.getElementById('feedbackBtn');
+            const fbText = document.getElementById('feedbackText');
+            document.getElementById('feedbackCount').innerText = appState.feedbackTotal;
+
+            if (appState.feedbackGiven) {
+                fbBtn.className = "px-4 py-2 bg-pink-600/40 border border-pink-500 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-pink-200 active:scale-95 shadow-lg shadow-pink-500/20";
+                fbText.innerText = "Copinho Enviado! 💖 Obrigado!";
+            } else {
+                fbBtn.className = "px-4 py-2 bg-zinc-800 hover:bg-pink-600/30 border border-zinc-700 hover:border-pink-500 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-zinc-200 group active:scale-95";
+                fbText.innerText = "Enviar Copinho de Gosto";
+            }
 
             // Update Aura & Status Banner
             const banner = document.getElementById('statusBanner');
